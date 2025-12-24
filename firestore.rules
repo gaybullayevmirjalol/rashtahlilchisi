@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // An admin can list and create users.
+    // This is for the /dashboard/teachers page.
+    match /users/{document=**} {
+       allow list, create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // A user can get, update their own profile.
+    // An admin can get or update any user's profile.
+    match /users/{userId} {
+      allow get, update: if request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      
+      // Nobody can delete user documents for now to prevent accidental data loss.
+      allow delete: if false;
+
+      // This is the universal rule for ALL subcollections under a user's directory.
+      // It grants full access (read, write) only to the owner of that directory.
+      // It works for `get`, `list`, `create`, `update`, `delete`.
+      match /{document=**} {
+        allow read, write: if request.auth.uid == userId;
+      }
+    }
+    
+    // Site settings can be read by anyone, but only written by an admin.
+    match /siteSettings/global {
+      allow read: if true;
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Bot settings can only be read and written by an admin.
+    // The Telegram bot itself will access this via Admin SDK, which bypasses these rules.
+    match /botSettings/global {
+        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}

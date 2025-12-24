@@ -1,0 +1,311 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the system, either a teacher or a super admin.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user (matches auth.uid)."
+        },
+        "login": {
+          "type": "string",
+          "description": "User's unique login username."
+        },
+        "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email, used for authentication."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["teacher", "admin"],
+          "description": "User's role."
+        },
+        "scanLimit": {
+          "type": "number",
+          "description": "Number of tests a teacher can scan and analyze."
+        },
+        "firstName": {
+            "type": "string",
+            "description": "User's first name."
+        },
+        "lastName": {
+            "type": "string",
+            "description": "User's last name."
+        },
+        "avatarUrl": {
+            "type": "string",
+            "description": "URL or Base64 data URI of the user's avatar image."
+        }
+      },
+      "required": [
+        "id",
+        "login",
+        "email",
+        "role"
+      ]
+    },
+    "Test": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Test",
+      "type": "object",
+      "description": "Represents a test created by a teacher. Stored in a subcollection under the user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the test."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the test."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user (teacher) who owns this test."
+        },
+        "subjectName": {
+          "type": "string",
+          "description": "The name of the subject for the test."
+        },
+        "totalMaxScore": {
+          "type": "number",
+          "description": "The total maximum score for this test."
+        },
+        "logoUrl": {
+            "type": "string",
+            "description": "Data URI for a logo specific to this test."
+        },
+        "sections": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "An array of section names for the test."
+        },
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "type": { "type": "string", "enum": ["single_choice", "multi_choice", "handwritten", "match", "cluster"] },
+              "correctAnswer": { "type": "string" },
+              "section": { "type": "string" }
+            },
+            "required": ["id", "type", "correctAnswer", "section"]
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Yaratildi",
+            "Boshlandi",
+            "Yakunlandi"
+          ],
+          "description": "The current status of the test."
+        },
+        "createdAt": {
+            "type": "object",
+            "description": "Server timestamp of when the test was created."
+        }
+      },
+      "required": [
+        "name",
+        "userId",
+        "subjectName",
+        "totalMaxScore",
+        "sections",
+        "questions",
+        "status",
+        "createdAt"
+      ]
+    },
+    "Student": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Student",
+      "type": "object",
+      "description": "Represents a student belonging to a teacher. Stored in a subcollection under the user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the student."
+        },
+        "name": {
+          "type": "string",
+          "description": "Student's full name."
+        },
+        "groupId": {
+          "type": "string",
+          "description": "ID of a Group this student belongs to (optional)."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user (teacher) who owns this student data."
+        },
+        "createdAt": {
+            "type": "object",
+            "description": "Server timestamp of when the student was created."
+        }
+      },
+      "required": [
+        "name",
+        "userId"
+      ]
+    },
+    "Group": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Group",
+      "type": "object",
+      "description": "Represents a group of students created by a teacher. Stored in a subcollection under the user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the group."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the group (e.g., '10-A sinf')."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user (teacher) who owns this group."
+        },
+         "createdAt": {
+            "type": "object",
+            "description": "Server timestamp of when the group was created."
+        }
+      },
+      "required": [
+        "name",
+        "userId"
+      ]
+    },
+    "TestResult": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TestResult",
+      "type": "object",
+      "description": "Represents the result of a student taking a test. Stored in a sub-subcollection under the test.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the test result."
+        },
+        "testId": {
+          "type": "string",
+          "description": "ID of the Test this result belongs to."
+        },
+        "studentId": {
+          "type": "string",
+          "description": "ID of the Student this result belongs to."
+        },
+        "score": {
+          "type": "number",
+          "description": "Student's raw score on the test (number of correct answers)."
+        },
+        "grade": {
+          "type": "string",
+          "description": "Grade level based on the RASH score (C, C+, B, B+, A, A+), if applicable."
+        },
+        "answers": {
+          "type": "array",
+          "description": "Array of student's answers for each question.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "submittedAt": {
+            "type": "object",
+            "description": "Server timestamp of when the result was submitted."
+        }
+      },
+      "required": [
+        "testId",
+        "studentId",
+        "score",
+        "submittedAt"
+      ]
+    },
+    "SiteSettings": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "SiteSettings",
+        "type": "object",
+        "description": "Stores global settings for the site, such as the logo.",
+        "properties": {
+            "id": {
+                "type": "string",
+                "description": "Should always be 'global'."
+            },
+            "logoUrl": {
+                "type": "string",
+                "description": "Data URI of the site logo."
+            }
+        },
+        "required": ["id"]
+    },
+    "BotSettings": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "BotSettings",
+        "type": "object",
+        "description": "Stores global settings for the Telegram bot.",
+        "properties": {
+            "id": {
+                "type": "string",
+                "description": "Should always be 'global'."
+            },
+            "token": {
+                "type": "string",
+                "description": "The secret token for the Telegram bot."
+            },
+            "requiredChannels": {
+              "type": "array",
+              "description": "A list of channels/groups the user must be subscribed to.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "link": { "type": "string" }
+                },
+                "required": ["name", "link"]
+              }
+            }
+        },
+        "required": ["id", "token"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password"
+    ]
+  },
+  "firestore": {
+     "/users/{userId}": {
+      "schema": "User",
+      "description": "Stores all user profile data."
+    },
+    "/users/{userId}/tests/{testId}": {
+      "schema": "Test",
+      "description": "Subcollection for tests created by a specific user."
+    },
+    "/users/{userId}/tests/{testId}/testResults/{resultId}": {
+      "schema": "TestResult",
+      "description": "Sub-subcollection for results of a specific test."
+    },
+    "/users/{userId}/students/{studentId}": {
+      "schema": "Student",
+      "description": "Subcollection for students managed by a specific user."
+    },
+    "/users/{userId}/groups/{groupId}": {
+      "schema": "Group",
+      "description": "Subcollection for groups created by a specific user."
+    },
+    "/siteSettings/global": {
+      "schema": "SiteSettings",
+      "description": "Stores global site settings. There should only be one document with the ID 'global'."
+    },
+     "/botSettings/global": {
+      "schema": "BotSettings",
+      "description": "Stores global bot settings. There should only be one document with the ID 'global'."
+    }
+  }
+}
